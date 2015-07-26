@@ -54,6 +54,7 @@
 
 # User's build configuration
 Makefile.config
+nohup.out
 
 # Data and models are either
 # 1. reference, and not casually committed
