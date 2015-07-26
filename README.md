@@ -1,5 +1,18 @@
-# Caffe
+# Caffe For FaceNet
 
+## Modified Caffe Framework For FaceNet
+What is **FaceNet**?
+
+Link: [CVPR 2015 FaceNet: A Unified Embedding for Face Recognition and Clustering](http://arxiv.org/abs/1503.03832)
+
+It is not finished yet, but will be updated gradually!!!
+
+## Updates
+- add **TripleLossLayer** class in loss_layers.hpp // empty class for now
+- add **triplet_layer.cpp** and **triplet_layer.cu** //emtpy files, to be updated
+
+
+## Caffe
 Caffe is a deep learning framework made with expression, speed, and modularity in mind.
 It is developed by the Berkeley Vision and Learning Center ([BVLC](http://bvlc.eecs.berkeley.edu)) and community contributors.
 
