@@ -763,6 +763,11 @@ class SoftmaxWithLossLayer : public LossLayer<Dtype> {
   int softmax_axis_, outer_num_, inner_num_;
 };
 
+template <typename Dtype>
+class TripletLossLayer : public LossLayer<Dtype> {
+
+};
+
 }  // namespace caffe
 
 #endif  // CAFFE_LOSS_LAYERS_HPP_
