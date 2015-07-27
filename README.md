@@ -8,8 +8,7 @@ Link: [CVPR 2015 FaceNet: A Unified Embedding for Face Recognition and Clusterin
 It is not finished yet, but will be updated gradually!!!
 
 ## Updates
-15.7.26
-
+#####15.7.26
 - add **TripleLossLayer** class in loss_layers.hpp // empty class for now
 - add **triplet_layer.cpp** and **triplet_layer.cu** //emtpy files, to be updated
 
