@@ -778,8 +778,8 @@ public:
     // the return value should change, it is wrong for now
     virtual inline int ExactNumBottomBlobs() const { return 2; }
     virtual inline int ExactNumTopBlobs() const { return 1; }
-    virtual inline int MinTopBlobs() const { return 1; }
-    virtual inline int MaxTopBlobs() const { return 2; }
+    // virtual inline int MinTopBlobs() const { return 1; }
+    // virtual inline int MaxTopBlobs() const { return 2; }
 
 protected:
     virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
@@ -809,6 +809,15 @@ protected:
     bool normalize_;
 
     int tripletloss_axis_, outer_num_, inner_num_;
+
+
+    Blob<Dtype> diff_;
+    Blod<Dtype> sub_;
+    int label_separator_;// = this->layer_param_.triplet_loss_param().separate();
+    int identities_per_batch_;// = this->layer_param_.triplet_loss_param().ids_per_batch();
+    int num_per_identity_;// = this->layer_param_.triplet_loss_param().num_per_id();
+    Dtype alpha_;// = (Dtype)(this->layer_param_.triplet_loss_param().alpha());
+    // Dtype* sub_tmp_;
 };
 
 }  // namespace caffe
