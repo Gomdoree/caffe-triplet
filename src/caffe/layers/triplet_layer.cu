@@ -1,3 +1,7 @@
+// add by Binbin Xu
+// declanxu@gmail.com or declanxu@126.com
+// Zhejiang University, State Key Lab of CAD&CG.
+
 #include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
 #include "caffe/vision_layers.hpp"
@@ -5,11 +9,11 @@
 namespace caffe {
 
 template <typename Dtype>
-__global__ void subAndDot(const int N, const int len, Dtype* a, Dtype* b, Dtype* out) {
+__global__ void subAndDot(const int N, const int len, const Dtype* a, const Dtype* b, Dtype* out) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     if (i < N){
         // int index = i%len;
-        Dtype* tmp = a[i] - b[i%len];
+        Dtype tmp = a[i] - b[i%len];
         out[i] = tmp*tmp;
     }
 }
@@ -19,15 +23,15 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
     Dtype loss = Dtype(0);
     int batch_size = bottom[0]->num(); // get the batch_size
-    CHECK_EQ(batch_size, bottom[1].count());
+    CHECK_EQ(batch_size, bottom[1]->count());
 
     const Dtype* bottom_data = bottom[0]->gpu_data();
     const Dtype* bottom_label = bottom[1]->cpu_data();
     Dtype* diff_mutable = diff_.mutable_gpu_data();
     Dtype* sub_mutable = sub_.mutable_gpu_data();
     Dtype* diff_diff = diff_.mutable_gpu_diff(); // store the diff
-    caffe_set(diff_.count(), 0, diff_mutable);
-    caffe_set(diff_.count(), 0, diff_diff);
+    caffe_set(diff_.count(), Dtype(0), diff_mutable);
+    caffe_set(diff_.count(), Dtype(0), diff_diff);
     // #program
     vector<int> labels(batch_size, 0);
     for (int i = 0; i < batch_size; i++){
@@ -41,12 +45,12 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     Dtype* device_tmp;
     CUDA_CHECK(cudaMalloc((void**)&device_scalar, inner_num_*sizeof(Dtype)));
     CUDA_CHECK(cudaMalloc((void**)&device_tmp, batch_size*sizeof(Dtype)));
-    caffe_gpu_set(batch_size, 1.0, device_scalar);
+    caffe_gpu_set(batch_size, Dtype(1.0), device_scalar);
 
     for (int i = 0; i < batch_size; i++){
         int label = labels[i];
         mat[i] = new Dtype[batch_size];
-        if (label < label_separator) {
+        if (label < label_separator_) {
             subAndDot<<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(batch_size, inner_num_,
             bottom_data, bottom_data+i*inner_num_, sub_mutable);
 

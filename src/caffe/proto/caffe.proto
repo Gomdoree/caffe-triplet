@@ -363,7 +363,7 @@ message TripletLossParameter {
     // label separate to distiguish the random sampled examples
     // should change according to the mini_batch
     optional int32 ids_per_batch = 4 [default = 40];
-    optional int32 nums_per_id = 5 [default = 40];
+    optional int32 num_per_id = 5 [default = 40];
 }
 
 // Message that stores parameters used to apply transformation

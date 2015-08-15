@@ -763,6 +763,9 @@ class SoftmaxWithLossLayer : public LossLayer<Dtype> {
   int softmax_axis_, outer_num_, inner_num_;
 };
 
+// add by Binbin Xu                             
+// declanxu@gmail.com or declanxu@126.com       
+// Zhejiang University, State Key Lab of CAD&CG.
 template <typename Dtype>
 class TripletLossLayer : public LossLayer<Dtype> {
 public:
@@ -812,7 +815,7 @@ protected:
 
 
     Blob<Dtype> diff_;
-    Blod<Dtype> sub_;
+    Blob<Dtype> sub_;
     int label_separator_;// = this->layer_param_.triplet_loss_param().separate();
     int identities_per_batch_;// = this->layer_param_.triplet_loss_param().ids_per_batch();
     int num_per_identity_;// = this->layer_param_.triplet_loss_param().num_per_id();

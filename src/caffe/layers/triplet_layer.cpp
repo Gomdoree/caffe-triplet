@@ -1,3 +1,7 @@
+// add by Binbin Xu                             
+// declanxu@gmail.com or declanxu@126.com       
+// Zhejiang University, State Key Lab of CAD&CG.
+
 #include "caffe/layer.hpp"
 #include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
@@ -34,15 +38,15 @@ void TripletLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     // refer to the paper: FaceNet for more details
     Dtype loss = Dtype(0);
     int batch_size = bottom[0]->num(); // get the batch_size
-    CHECK_EQ(batch_size, bottom[1].count());
+    CHECK_EQ(batch_size, bottom[1]->count());
 
     const Dtype* bottom_data = bottom[0]->cpu_data();
     const Dtype* bottom_label = bottom[1]->cpu_data();
     Dtype* diff_mutable = diff_.mutable_cpu_data();
     Dtype* sub_mutable = sub_.mutable_cpu_data();
     Dtype* diff_diff = diff_.mutable_cpu_diff(); // store the diff
-    caffe_set(diff_.count(), 0, diff_mutable);
-    caffe_set(diff_.count(), 0, diff_diff);
+    caffe_set(diff_.count(), Dtype(0), diff_mutable);
+    caffe_set(diff_.count(), Dtype(0), diff_diff);
     // #program
     vector<int> labels(batch_size, 0);
     for (int i = 0; i < batch_size; i++){
@@ -52,7 +56,7 @@ void TripletLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     for (int i = 0; i < batch_size; i++){
         Dtype* diff_mutable_ptr = diff_mutable + i*inner_num_;
         int label = labels[i];
-        if (label < label_separator) {
+        if (label < label_separator_) {
             vector<Dtype> val(batch_size, 0);
             int ptr = 0;
             Dtype* sub_mutable_ptr = sub_mutable;
