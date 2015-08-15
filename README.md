@@ -9,7 +9,7 @@ It is almost finished, but need further testing and bug fixing!!!
 
 ## Updates
 #####15.7.26
-- add **TripleLossLayer** class in loss_layers.hpp // empty class for now
+- add **TripleLossLayer** class in **loss_layers.hpp** // empty class for now
 - add **triplet_layer.cpp** and **triplet_layer.cu** //emtpy files, to be updated
 
 #####15.8.13
