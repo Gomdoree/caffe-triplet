@@ -763,8 +763,8 @@ class SoftmaxWithLossLayer : public LossLayer<Dtype> {
   int softmax_axis_, outer_num_, inner_num_;
 };
 
-// add by Binbin Xu                             
-// declanxu@gmail.com or declanxu@126.com       
+// add by Binbin Xu
+// declanxu@gmail.com or declanxu@126.com
 // Zhejiang University, State Key Lab of CAD&CG.
 template <typename Dtype>
 class TripletLossLayer : public LossLayer<Dtype> {
@@ -795,13 +795,13 @@ protected:
         const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
     /// The internal TripletLossLayer used to map predictions to a distribution.
-    shared_ptr<Layer<Dtype> > tripletloss_layer_;
+    // shared_ptr<Layer<Dtype> > tripletloss_layer_;
     /// prob stores the output probability predictions from the SoftmaxLayer.
-    Blob<Dtype> prob_;
+    // Blob<Dtype> prob_;
     /// bottom vector holder used in call to the underlying TripletLossLayer::Forward
-    vector<Blob<Dtype>*> tripletloss_bottom_vec_;
+    // vector<Blob<Dtype>*> tripletloss_bottom_vec_;
     /// top vector holder used in call to the underlying TripletLossLayer::Forward
-    vector<Blob<Dtype>*> tripletloss_top_vec_;
+    // vector<Blob<Dtype>*> tripletloss_top_vec_;
     /// Whether to ignore instances with a certain label.
     bool has_ignore_label_;
     /// The label indicating that an instance should be ignored.
@@ -811,11 +811,11 @@ protected:
     /// (otherwise just by the batch size).
     bool normalize_;
 
-    int tripletloss_axis_, outer_num_, inner_num_;
-
+    // int tripletloss_axis_, outer_num_,
 
     Blob<Dtype> diff_;
     Blob<Dtype> sub_;
+    int inner_num_;
     int label_separator_;// = this->layer_param_.triplet_loss_param().separate();
     int identities_per_batch_;// = this->layer_param_.triplet_loss_param().ids_per_batch();
     int num_per_identity_;// = this->layer_param_.triplet_loss_param().num_per_id();

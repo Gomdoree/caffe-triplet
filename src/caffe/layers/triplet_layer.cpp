@@ -1,5 +1,5 @@
-// add by Binbin Xu                             
-// declanxu@gmail.com or declanxu@126.com       
+// add by Binbin Xu
+// declanxu@gmail.com or declanxu@126.com
 // Zhejiang University, State Key Lab of CAD&CG.
 
 #include "caffe/layer.hpp"
@@ -58,7 +58,7 @@ void TripletLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
         int label = labels[i];
         if (label < label_separator_) {
             vector<Dtype> val(batch_size, 0);
-            int ptr = 0;
+            // int ptr = 0;
             Dtype* sub_mutable_ptr = sub_mutable;
             Dtype* diff_inner_ptr = diff_mutable;
             // #pragma omp parallel for
