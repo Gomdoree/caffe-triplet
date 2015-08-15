@@ -357,14 +357,13 @@ message LayerParameter {
 
 // add triplet loss param
 message TripletLossParameter {
-    required float alpha = 1 [default = 0.5]; // to be tuned
+    optional float alpha = 1 [default = 0.5]; // to be tuned
     // optional double beta = 2 [default = 0.5]; // to be tuned
-    required int32 separate = 3 [default = 10000];
+    optional int32 separate = 3 [default = 10000];
     // label separate to distiguish the random sampled examples
-
     // should change according to the mini_batch
-    required int32 ids_per_batch = 4 [default = 40];
-    required int32 nums_per_id = 5 [default = 40];
+    optional int32 ids_per_batch = 4 [default = 40];
+    optional int32 nums_per_id = 5 [default = 40];
 }
 
 // Message that stores parameters used to apply transformation

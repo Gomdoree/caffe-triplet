@@ -115,7 +115,7 @@ void TripletLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
         );
     }
     else {
-        LOG(ERROR) << "should be back propagate to prev-layer AT TripletLossLayer::Backward_cpu" << endl;
+        LOG(ERROR) << "should be back propagate to prev-layer AT TripletLossLayer::Backward_cpu" << std::endl;
     }
 
   // for (int i = 0; i < 2; ++i) {
