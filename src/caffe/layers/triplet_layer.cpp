@@ -16,7 +16,7 @@ namespace caffe {
 template <typename Dtype>
 void TripletLossLayer<Dtype>::Reshape(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top){
-    LossLayer::Reshape(bottom, top);
+    LossLayer<Dtype>::Reshape(bottom, top);
     diff_.ReshapeLike(*bottom[0]); // bottom[0] is batch_size*channels(128)*1*1
     sub_.ReshapeLike(*bottom[0]);
     inner_num_ = bottom[0]->count(1);
