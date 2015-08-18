@@ -12,15 +12,25 @@ namespace caffe {
 /// X_i^p is the positive, means has the same label as X_i^a
 /// X_i^n is the negative, means has the different labels as X_i^a
 
+// in layer.hpp Reshape will be called after LayerSetUp
 template <typename Dtype>
 void TripletLossLayer<Dtype>::Reshape(
+    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top){
+    LossLayer::Reshape(bottom, top);
+    diff_.ReshapeLike(*bottom[0]); // bottom[0] is batch_size*channels(128)*1*1
+    sub_.ReshapeLike(*bottom[0]);
+    inner_num_ = bottom[0]->count(1);
+}
+
+template <typename Dtype>
+void TripletLossLayer<Dtype>::LayerSetUp(
   const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   // top is just a scalar
-  LossLayer<Dtype>::Reshape(bottom, top);
+  LossLayer<Dtype>::LayerSetUp(bottom, top);
   // store (X_i^n - X_i^p)/N which can backpropagate to prev-layer directly
-  diff_.ReshapeLike(*bottom[0]); // bottom[0] is batch_size*channels(128)*1*1
-  sub_.ReshapeLike(*bottom[0]);
-  inner_num_ = bottom[0]->count(1);
+  // diff_.ReshapeLike(*bottom[0]); // bottom[0] is batch_size*channels(128)*1*1
+  // sub_.ReshapeLike(*bottom[0]);
+  // inner_num_ = bottom[0]->count(1);
   // get some parameters
   label_separator_ = this->layer_param_.triplet_loss_param().separate();
   identities_per_batch_ = this->layer_param_.triplet_loss_param().ids_per_batch();
