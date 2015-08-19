@@ -106,6 +106,7 @@ void TripletLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     else {
         LOG(ERROR) << "should be back propagate to prev-layer AT TripletLossLayer::Backward_cpu" << std::endl;
     }
+
   // for (int i = 0; i < 2; ++i) {
   //   if (propagate_down[i]) {
   //     const Dtype sign = (i == 0) ? 1 : -1;
