@@ -23,6 +23,7 @@ void InsertSplits(const NetParameter& param, NetParameter* param_split) {
   // Determine the number of times each blob is used as an input (bottom) blob.
   for (int i = 0; i < param.input_size(); ++i) {
     const string& blob_name = param.input(i);
+    LOG(INFO) << i << " " << blob_name;
     blob_name_to_last_top_idx[blob_name] = make_pair(-1, i);
   }
   for (int i = 0; i < param.layer_size(); ++i) {
@@ -32,7 +33,7 @@ void InsertSplits(const NetParameter& param, NetParameter* param_split) {
       const string& blob_name = layer_param.bottom(j);
       if (blob_name_to_last_top_idx.find(blob_name) ==
           blob_name_to_last_top_idx.end()) {
-        LOG(FATAL) << "Unknown blob input " << blob_name << " to layer " << j;
+        LOG(FATAL) << "Unknown blob input " << blob_name << " to layer " << j << "::" << i;
       }
       const pair<int, int>& bottom_idx = make_pair(i, j);
       const pair<int, int>& top_idx = blob_name_to_last_top_idx[blob_name];

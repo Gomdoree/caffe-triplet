@@ -358,13 +358,13 @@ message LayerParameter {
 
 // add triplet loss param
 message TripletLossParameter {
-    optional float alpha = 1 [default = 0.5]; // to be tuned
+    optional float alpha = 1 [default = 1.1]; // to be tuned
     // optional double beta = 2 [default = 0.5]; // to be tuned
     optional int32 separate = 3 [default = 10000];
     // label separate to distiguish the random sampled examples
     // should change according to the mini_batch
-    optional int32 ids_per_batch = 4 [default = 40];
-    optional int32 num_per_id = 5 [default = 40];
+    optional int32 ids_per_batch = 4 [default = 20];
+    optional int32 num_per_id = 5 [default = 20];
 }
 
 // add normalization param

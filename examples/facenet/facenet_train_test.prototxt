@@ -29,7 +29,7 @@ layer {
   }
   data_param {
     source: "examples/mnist/mnist_test_lmdb"
-    batch_size: 100
+    batch_size: 256
     backend: LEVELDB
   }
 }
@@ -69,13 +69,13 @@ layer {
 }
 layer {
     name: "rnorm1"
-    type: LRN
+    type: "LRN"
     bottom: "pool1"
     top: "rnorm1"
     lrn_param {
-        local_size = 5
-        alpha = 1.0
-        beta = 0.75
+        local_size: 5
+        alpha: 1.0
+        beta: 0.75
     }
 }
 layer {
@@ -97,7 +97,7 @@ layer {
       type: "xavier"
     }
     bias_filler {
-      type: "constant"
+        type: "constant"
     }
   }
 }
@@ -128,13 +128,13 @@ layer {
 
 layer {
     name: "rnorm2"
-    type: LRN
+    type: "LRN"
     bottom: "conv2"
     top: "rnorm2"
     lrn_param {
-        local_size = 5
-        alpha = 1.0
-        beta = 0.75
+        local_size: 5
+        alpha: 1.0
+        beta: 0.75
     }
 }
 layer {
@@ -410,9 +410,9 @@ layer {
 }
 
 
-layers {
+layer {
   name: "maxout1"
-  type: ELTWISE
+  type: "Eltwise"
   bottom: "fc1a"
   bottom: "fc1b"
   top: "maxout1"
@@ -466,9 +466,9 @@ layer {
 }
 
 
-layers {
+layer {
   name: "maxout2"
-  type: ELTWISE
+  type: "Eltwise"
   bottom: "fc2a"
   bottom: "fc2b"
   top: "maxout2"
@@ -477,7 +477,7 @@ layers {
   }
 }
 
-layers {
+layer {
   name: "fc7128"
   type: "InnerProduct"
   bottom: "maxout2"
@@ -504,9 +504,9 @@ layer {
   type: "Normalization"
   bottom: "fc7128"
   top: "l2"
-  normalization_param {
-    norm: L2
-  }
+    normalization_param {
+        norm: L2
+    }
 }
 
 layer {

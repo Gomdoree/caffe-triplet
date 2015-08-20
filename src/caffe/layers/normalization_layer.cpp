@@ -16,7 +16,7 @@ namespace caffe {
 
 template <typename Dtype>
 void NormalizationLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& top) {
   // Layer<Dtype>::Reshape(bottom, top);
   top[0]->ReshapeLike(*bottom[0]);
   squared_.ReshapeLike(*bottom[0]);
@@ -28,7 +28,7 @@ void NormalizationLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void NormalizationLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-    vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
   Dtype* squared_data = squared_.mutable_cpu_data();
@@ -43,7 +43,7 @@ void NormalizationLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void NormalizationLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, vector<Blob<Dtype>*>& bottom) {
+    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
   const Dtype* top_diff = top[0]->cpu_diff();
   const Dtype* top_data = top[0]->cpu_data();
   const Dtype* bottom_data = bottom[0]->cpu_data();
