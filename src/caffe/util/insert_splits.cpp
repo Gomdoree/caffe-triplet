@@ -23,7 +23,7 @@ void InsertSplits(const NetParameter& param, NetParameter* param_split) {
   // Determine the number of times each blob is used as an input (bottom) blob.
   for (int i = 0; i < param.input_size(); ++i) {
     const string& blob_name = param.input(i);
-    LOG(INFO) << i << " " << blob_name;
+      LOG(INFO) << i << ":::" << blob_name << std::endl;
     blob_name_to_last_top_idx[blob_name] = make_pair(-1, i);
   }
   for (int i = 0; i < param.layer_size(); ++i) {
