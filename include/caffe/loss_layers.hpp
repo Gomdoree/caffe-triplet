@@ -803,13 +803,13 @@ protected:
     /// top vector holder used in call to the underlying TripletLossLayer::Forward
     // vector<Blob<Dtype>*> tripletloss_top_vec_;
     /// Whether to ignore instances with a certain label.
-    bool has_ignore_label_;
+    // bool has_ignore_label_;
     /// The label indicating that an instance should be ignored.
-    int ignore_label_;
+    // int ignore_label_;
 
     /// Whether to normalize the loss by the total number of values present
     /// (otherwise just by the batch size).
-    bool normalize_;
+    // bool normalize_;
 
     // int tripletloss_axis_, outer_num_,
 
