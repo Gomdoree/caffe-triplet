@@ -1,3 +1,7 @@
+// add by Binbin Xu
+// declanxu@gmail.com or declanxu@126.com
+// Zhejiang University, State Key Lab of CAD&CG.
+
 #include <algorithm>
 #include <vector>
 #include <cmath>
