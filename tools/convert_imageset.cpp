@@ -89,10 +89,10 @@ int main(int argc, char** argv) {
 
   int resize_height = std::max<int>(0, FLAGS_resize_height);
   int resize_width = std::max<int>(0, FLAGS_resize_width);
-  LOG(INFO) << "resize_width: " << resize_width << ", resize_height: " << resize_height; 
-  LOG(INFO) << "batch_size: " << batch_size;
-  LOG(INFO) << "is_color: " << is_color;
-  LOG(INFO) << "shuffle: " << FLAGS_shuffle;
+  LOG(ERROR) << "resize_width: " << resize_width << ", resize_height: " << resize_height; 
+  LOG(ERROR) << "batch_size: " << batch_size;
+  LOG(ERROR) << "is_color: " << is_color;
+  LOG(ERROR) << "shuffle: " << FLAGS_shuffle;
 
   // Create new DB
   scoped_ptr<db::DB> db(db::GetDB(FLAGS_backend));
