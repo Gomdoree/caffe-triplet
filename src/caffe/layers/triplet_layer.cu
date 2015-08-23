@@ -67,13 +67,13 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
             cudaMemcpy(mat[i], device_tmp, batch_size*sizeof(Dtype), cudaMemcpyDeviceToHost);
             Dtype* val = mat[i];
             for (int j = 0; j < batch_size; j++){
-                if (j != i && labels[j] == label){
+                if (j != i && labels[j] == label){ // j is the positive
                     for (int k = 0; k < batch_size; k++){
                         if (labels[k] != label) {
-                            if (val[j]+alpha_ >= val[k]) {
+                            if (val[j]+alpha_ >= val[k]) { // k is the negative
                                 loss += val[j] + alpha_ - val[k];
                                 // store half of the gradients
-                                caffe_gpu_sub(inner_num_, bottom_data+j*inner_num_, bottom_data+k*inner_num_, diff_diff+j*inner_num_);
+                                caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, diff_diff+i*inner_num_);
                             }
                         }
                     }
@@ -95,6 +95,10 @@ template <typename Dtype>
 void TripletLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
     if (propagate_down[0]){
+        if (top[0]->cpu_diff()[0] != Dtype(1.0)){
+            LOG(INFO) << "Triplet.cu top cpu_diff is not 1.0 is " << top[0]->cpu_diff()[0];
+        }
+
         Dtype scale = Dtype(2.0);
         caffe_gpu_scale(
                 bottom[0]->count(),    // count

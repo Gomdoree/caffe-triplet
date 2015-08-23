@@ -87,7 +87,7 @@ void TripletLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                             if (val[j]+alpha_ >= val[k]) {
                                 loss += val[j] + alpha_ - val[k];
                                 // store half of the gradients
-                                caffe_sub(inner_num_, bottom_data+j*inner_num_, bottom_data+k*inner_num_, diff_diff+j*inner_num_);
+                                caffe_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, diff_diff+i*inner_num_);
                             }
                         }
                     }
