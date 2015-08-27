@@ -41,8 +41,8 @@ DEFINE_bool(encoded, false,
     "When this option is on, the encoded image will be save in datum");
 DEFINE_string(encode_type, "",
     "Optional: What type should we encode the image as ('png','jpg',...).");
-DEFINE_int32(batch_size, 512,
-    "specify the batch size, default 512");
+DEFINE_int32(batch_size, 128,
+    "specify the batch size, default 128");
 
 int main(int argc, char** argv) {
   ::google::InitGoogleLogging(argv[0]);
@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
     LOG(INFO) << "Shuffling data";
     shuffle(lines.begin(), lines.end());
   }
-  LOG(INFO) << "A total of " << lines.size() << " images.";
+  LOG(ERROR) << "A total of " << lines.size() << " images.";
 
   if (encode_type.size() && !encoded)
     LOG(INFO) << "encode_type specified, assuming encoded=true.";
@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
   char key_cstr[kMaxKeyLength];
   int data_size = 0;
   bool data_size_initialized = false;
-
+   // int batch_cnt = 0;
   for (int line_id = 0; line_id < lines.size(); ++line_id) {
     bool status;
     std::string enc = encode_type;
@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
     CHECK(datum.SerializeToString(&out));
     txn->Put(string(key_cstr, length), out);
 
-    if (++count % batch_size == 0) {
+    if (++count % 1000 == 0) {
       // Commit db
       txn->Commit();
       txn.reset(db->NewTransaction());
@@ -151,13 +151,12 @@ int main(int argc, char** argv) {
     }
   }
   // write the last batch
-  if (count % batch_size != 0) {
+  if (count % 1000 != 0) {
     txn->Commit();
     LOG(ERROR) << "Processed " << count << " files.";
   }
   return 0;
 }
-
 /*
 int main(int argc, char** argv) {
   ::google::InitGoogleLogging(argv[0]);

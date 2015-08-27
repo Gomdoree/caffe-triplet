@@ -21,23 +21,30 @@ __global__ void subAndDot(const int N, const int len, const Dtype* a, const Dtyp
 template <typename Dtype>
 void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
+    //LOG(INFO) << "enter triplet Forward_gpu";
     Dtype loss = Dtype(0);
     int batch_size = bottom[0]->num(); // get the batch_size
-    CHECK_EQ(batch_size, bottom[1]->count());
+    //CHECK_EQ(batch_size, bottom[1]->count());
+    //LOG(INFO) << batch_size << ":" << bottom[1]->num();
 
     const Dtype* bottom_data = bottom[0]->gpu_data();
     const Dtype* bottom_label = bottom[1]->cpu_data();
+    //LOG(INFO) << "mark";
     Dtype* diff_mutable = diff_.mutable_gpu_data();
     Dtype* sub_mutable = sub_.mutable_gpu_data();
+    //LOG(INFO) << "mark 00";
     Dtype* diff_diff = diff_.mutable_gpu_diff(); // store the diff
-    caffe_set(diff_.count(), Dtype(0), diff_mutable);
-    caffe_set(diff_.count(), Dtype(0), diff_diff);
+    //LOG(INFO) << "mark 000";
+    caffe_gpu_set(diff_.count(), Dtype(0), diff_mutable);
+    //LOG(INFO) << "mark 0000";
+    caffe_gpu_set(diff_.count(), Dtype(0), diff_diff);
     // #program
+    //LOG(INFO) << "mark 0";
     vector<int> labels(batch_size, 0);
     for (int i = 0; i < batch_size; i++){
         labels[i] = static_cast<int>(bottom_label[i]);
     }
-
+    //LOG(INFO) << "mark 1";
     int count = diff_.count();
     Dtype** mat = new Dtype*[batch_size];
 
@@ -46,14 +53,14 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     CUDA_CHECK(cudaMalloc((void**)&device_scalar, inner_num_*sizeof(Dtype)));
     CUDA_CHECK(cudaMalloc((void**)&device_tmp, batch_size*sizeof(Dtype)));
     caffe_gpu_set(batch_size, Dtype(1.0), device_scalar);
-
+    //LOG(INFO) << "mark 2";
     for (int i = 0; i < batch_size; i++){
         int label = labels[i];
         mat[i] = new Dtype[batch_size];
         if (label < label_separator_) {
             subAndDot<<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(batch_size, inner_num_,
             bottom_data, bottom_data+i*inner_num_, sub_mutable);
-
+            //LOG(INFO) << "mark 3";
             caffe_gpu_gemv(CblasNoTrans, inner_num_, batch_size, Dtype(1.0), sub_mutable, device_scalar, Dtype(0), device_tmp);
             /*
             cublasDgemv(handle,
@@ -64,6 +71,7 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
                 &Dtype(0),
                 mat[i], 1
             )*/
+            //LOG(INFO) << "mark 4";
             cudaMemcpy(mat[i], device_tmp, batch_size*sizeof(Dtype), cudaMemcpyDeviceToHost);
             Dtype* val = mat[i];
             for (int j = 0; j < batch_size; j++){

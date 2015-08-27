@@ -11,9 +11,9 @@ layer {
     scale: 0.00390625
   }
   data_param {
-    source: "examples/lenet/mnist_train_lmdb"
-    batch_size: 256
-    backend: LEVELDB
+    source: "/home/dirk/deep_learning/caffe/tmp_train/"
+    batch_size: 128
+    backend: LMDB
   }
 }
 layer {
@@ -28,9 +28,9 @@ layer {
     scale: 0.00390625
   }
   data_param {
-    source: "examples/mnist/mnist_test_lmdb"
-    batch_size: 256
-    backend: LEVELDB
+    source: "/home/dirk/deep_learning/caffe/tmp_test/"
+    batch_size: 128
+    backend: LMDB
   }
 }
 layer {
@@ -48,6 +48,7 @@ layer {
     num_output: 64
     kernel_size: 7
     stride: 2
+    pad: 3 
     weight_filler {
       type: "xavier"
     }
