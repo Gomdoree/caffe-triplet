@@ -5,7 +5,7 @@ net: "examples/facenet/facenet_train_test.prototxt"
 # covering the full 10,000 testing images.
 test_iter: 4
 # Carry out testing every 500 training iterations.
-test_interval: 4
+test_interval: 500
 # The base learning rate, momentum and the weight decay of the network.
 base_lr: 0.01
 momentum: 0.9

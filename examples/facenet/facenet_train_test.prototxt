@@ -11,7 +11,7 @@ layer {
     scale: 0.00390625
   }
   data_param {
-    source: "/home/dirk/deep_learning/caffe/tmp_train/"
+    source: "/home/xubinbin/caffe/tmp_train_lmdb/"
     batch_size: 128
     backend: LMDB
   }
@@ -28,7 +28,7 @@ layer {
     scale: 0.00390625
   }
   data_param {
-    source: "/home/dirk/deep_learning/caffe/tmp_test/"
+    source: "/home/xubinbin/caffe/tmp_test_lmdb/"
     batch_size: 128
     backend: LMDB
   }
@@ -514,6 +514,10 @@ layer {
   name: "loss"
   type: "TripletLoss"
   bottom: "l2"
+#  bottom: "fc7128"
   bottom: "label"
   top: "loss"
+  triplet_loss_param {
+	alpha: 0.00000005
+  }
 }

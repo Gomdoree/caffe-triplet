@@ -22,6 +22,7 @@ template <typename Dtype>
 void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
     //LOG(INFO) << "enter triplet Forward_gpu";
+    //LOG(INFO) << "inner_num_: " << inner_num_ << ", label_separator_: " << label_separator_;
     Dtype loss = Dtype(0);
     int batch_size = bottom[0]->num(); // get the batch_size
     //CHECK_EQ(batch_size, bottom[1]->count());
@@ -29,22 +30,23 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
     const Dtype* bottom_data = bottom[0]->gpu_data();
     const Dtype* bottom_label = bottom[1]->cpu_data();
-    //LOG(INFO) << "mark";
     Dtype* diff_mutable = diff_.mutable_gpu_data();
     Dtype* sub_mutable = sub_.mutable_gpu_data();
-    //LOG(INFO) << "mark 00";
     Dtype* diff_diff = diff_.mutable_gpu_diff(); // store the diff
-    //LOG(INFO) << "mark 000";
     caffe_gpu_set(diff_.count(), Dtype(0), diff_mutable);
-    //LOG(INFO) << "mark 0000";
     caffe_gpu_set(diff_.count(), Dtype(0), diff_diff);
-    // #program
-    //LOG(INFO) << "mark 0";
     vector<int> labels(batch_size, 0);
     for (int i = 0; i < batch_size; i++){
         labels[i] = static_cast<int>(bottom_label[i]);
+	//std::cout << labels[i] << " ";
     }
-    //LOG(INFO) << "mark 1";
+    //std::cout << "\n";
+
+    //subAndDot<<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(N, inner_num_,
+    //bottom_data, diff_mutable, sub_mutable);
+    //LOG(INFO) << "mark 3";
+    //caffe_gpu_gemv(CblasNoTrans, inner_num_, batch_size, Dtype(1.0), sub_mutable, device_scalar, Dtype(0), device_tmp);
+
     int count = diff_.count();
     Dtype** mat = new Dtype*[batch_size];
 
@@ -52,16 +54,31 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     Dtype* device_tmp;
     CUDA_CHECK(cudaMalloc((void**)&device_scalar, inner_num_*sizeof(Dtype)));
     CUDA_CHECK(cudaMalloc((void**)&device_tmp, batch_size*sizeof(Dtype)));
-    caffe_gpu_set(batch_size, Dtype(1.0), device_scalar);
+    caffe_gpu_set(inner_num_, Dtype(1.0), device_scalar);
     //LOG(INFO) << "mark 2";
+    int N = batch_size*inner_num_;
+    
+/*
+    subAndDot<<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(N, inner_num_,
+    bottom_data, diff_mutable, sub_mutable);
+    //LOG(INFO) << "mark 3";
+    caffe_gpu_gemv(CblasNoTrans, inner_num_, batch_size, Dtype(1.0), sub_mutable, device_scalar, Dtype(0), device_tmp);
+    Dtype* tmp = new Dtype[batch_size];
+    cudaMemcpy(tmp, device_tmp, batch_size*sizeof(Dtype), cudaMemcpyDeviceToHost);
+    
+    for (int i = 0; i < batch_size; i++){
+	LOG(INFO) << i << ": " << tmp[i];
+    }
+    delete[] tmp;
+*/
     for (int i = 0; i < batch_size; i++){
         int label = labels[i];
         mat[i] = new Dtype[batch_size];
         if (label < label_separator_) {
-            subAndDot<<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(batch_size, inner_num_,
+            subAndDot<<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(N, inner_num_,
             bottom_data, bottom_data+i*inner_num_, sub_mutable);
             //LOG(INFO) << "mark 3";
-            caffe_gpu_gemv(CblasNoTrans, inner_num_, batch_size, Dtype(1.0), sub_mutable, device_scalar, Dtype(0), device_tmp);
+            caffe_gpu_gemv(CblasNoTrans, inner_num_, batch_size, Dtype(1.0), sub_mutable, device_scalar, Dtype(0.0), device_tmp);
             /*
             cublasDgemv(handle,
                 batch_size, inner_num_,
@@ -73,15 +90,20 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
             )*/
             //LOG(INFO) << "mark 4";
             cudaMemcpy(mat[i], device_tmp, batch_size*sizeof(Dtype), cudaMemcpyDeviceToHost);
+
             Dtype* val = mat[i];
-            for (int j = 0; j < batch_size; j++){
+            bool flag = true;
+            for (int j = 0; j < batch_size && flag; j++){
                 if (j != i && labels[j] == label){ // j is the positive
                     for (int k = 0; k < batch_size; k++){
                         if (labels[k] != label) {
                             if (val[j]+alpha_ >= val[k]) { // k is the negative
                                 loss += val[j] + alpha_ - val[k];
                                 // store half of the gradients
-                                caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, diff_diff+i*inner_num_);
+                                // LOG(INFO) << i << ", " << j << ": " << val[j]  << ", " << k << ": " << val[k];
+				caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, diff_diff+i*inner_num_);
+				flag = false;
+				break;
                             }
                         }
                     }
@@ -107,13 +129,24 @@ void TripletLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
             LOG(INFO) << "Triplet.cu top cpu_diff is not 1.0 is " << top[0]->cpu_diff()[0];
         }
 
-        Dtype scale = Dtype(2.0);
+        Dtype scale = Dtype(2.0)*top[0]->cpu_diff()[0];
         caffe_gpu_scale(
                 bottom[0]->count(),    // count
                 scale,                 // scale
                 diff_.gpu_diff(),      // input
                 bottom[0]->mutable_gpu_diff() // output
         );
+	/*
+	const Dtype* ptr = bottom[0]->cpu_diff();
+	for (int i = 0; i < bottom[0]->num(); i++) {
+	    int tmp = i*128;
+	    std::cout << i << ": ";
+	    for (int j = 0; j < 128; j++) {
+	    	std::cout << ptr[tmp++] << " ";
+	    }
+	    std::cout << "\n";
+	}
+	*/
     }
     else {
         LOG(ERROR) << "should be back propagate to prev-layer AT TripletLossLayer::Backward_cpu" << std::endl;
