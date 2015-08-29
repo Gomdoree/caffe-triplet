@@ -48,7 +48,7 @@ void TripletLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     // refer to the paper: FaceNet for more details
     Dtype loss = Dtype(0);
     int batch_size = bottom[0]->num(); // get the batch_size
-    CHECK_EQ(batch_size, bottom[1]->count());
+    //CHECK_EQ(batch_size, bottom[1]->count());
 
     const Dtype* bottom_data = bottom[0]->cpu_data();
     const Dtype* bottom_label = bottom[1]->cpu_data();
@@ -120,7 +120,8 @@ template <typename Dtype>
 void TripletLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
     if (propagate_down[0]){
-        Dtype scale = Dtype(2.0);
+        //Dtype scale = Dtype(2.0);
+        Dtype scale = Dtype(2.0)*top[0]->cpu_diff()[0];
         caffe_cpu_scale(
                 bottom[0]->count(),    // count
                 scale,                 // scale
