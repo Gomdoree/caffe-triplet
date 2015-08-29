@@ -375,10 +375,10 @@ layer {
 }
 
 layer {
-  name: "fc1a"
+  name: "fc1"
   type: "InnerProduct"
   bottom: "pool4"
-  top: "fc1a"
+  top: "fc1"
   param {
     lr_mult: 1
   }
@@ -397,10 +397,10 @@ layer {
 }
 
 layer {
-  name: "fc1b"
+  name: "fc2"
   type: "InnerProduct"
-  bottom: "pool4"
-  top: "fc1b"
+  bottom: "fc1"
+  top: "fc2"
   param {
     lr_mult: 1
   }
@@ -415,81 +415,13 @@ layer {
     bias_filler {
       type: "constant"
     }
-  }
-}
-
-
-layer {
-  name: "maxout1"
-  type: "Eltwise"
-  bottom: "fc1a"
-  bottom: "fc1b"
-  top: "maxout1"
-  eltwise_param {
-    operation:MAX
-  }
-}
-
-layer {
-  name: "fc2a"
-  type: "InnerProduct"
-  bottom: "maxout1"
-  top: "fc2a"
-  param {
-    lr_mult: 1
-  }
-  param {
-    lr_mult: 2
-  }
-  inner_product_param {
-    num_output: 4096
-    weight_filler {
-      type: "xavier"
-    }
-    bias_filler {
-      type: "constant"
-    }
-  }
-}
-
-layer {
-  name: "fc2b"
-  type: "InnerProduct"
-  bottom: "maxout1"
-  top: "fc2b"
-  param {
-    lr_mult: 1
-  }
-  param {
-    lr_mult: 2
-  }
-  inner_product_param {
-    num_output: 4096
-    weight_filler {
-      type: "xavier"
-    }
-    bias_filler {
-      type: "constant"
-    }
-  }
-}
-
-
-layer {
-  name: "maxout2"
-  type: "Eltwise"
-  bottom: "fc2a"
-  bottom: "fc2b"
-  top: "maxout2"
-  eltwise_param {
-    operation:MAX
   }
 }
 
 layer {
   name: "fc7128"
   type: "InnerProduct"
-  bottom: "maxout2"
+  bottom: "fc2"
   top: "fc7128"
   param {
     lr_mult: 1
@@ -526,7 +458,6 @@ layer {
   bottom: "label"
   top: "loss"
   triplet_loss_param {
-	alpha: 0.00000005
+	alpha: 1.0
   }
 }
-
