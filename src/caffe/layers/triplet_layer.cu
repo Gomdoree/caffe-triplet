@@ -25,7 +25,7 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     //LOG(INFO) << "inner_num_: " << inner_num_ << ", label_separator_: " << label_separator_;
     Dtype loss = Dtype(0);
     int batch_size = bottom[0]->num(); // get the batch_size
-    //CHECK_EQ(batch_size, bottom[1]->count());
+    CHECK_EQ(batch_size, bottom[1]->count());
     //LOG(INFO) << batch_size << ":" << bottom[1]->num();
 
     const Dtype* bottom_data = bottom[0]->gpu_data();
@@ -93,21 +93,45 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
             Dtype* val = mat[i];
             bool flag = true;
+            Dtype min = Dtype(100000.0);
+            int tmp_k = -1;
+            int tmp_j = -1;
             for (int j = 0; j < batch_size && flag; j++){
                 if (j != i && labels[j] == label){ // j is the positive
                     for (int k = 0; k < batch_size; k++){
                         if (labels[k] != label) {
-                            if (val[j]+alpha_ >= val[k]) { // k is the negative
+                            if (val[j] >= val[k]) {
+                            //if (val[j]+alpha_ >= val[k]) { // k is the negative
                                 loss += val[j] + alpha_ - val[k];
                                 // store half of the gradients
                                 // LOG(INFO) << i << ", " << j << ": " << val[j]  << ", " << k << ": " << val[k];
-				caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, diff_diff+i*inner_num_);
-				flag = false;
-				break;
+                                caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, diff_diff+i*inner_num_);
+                                flag = false;
+                                break;
+                            }
+                            else {
+                                if (val[k] - val[j] < min) {
+                                    min = val[k] - val[j];
+                                    tmp_j = j;
+                                    tmp_k = k;
+                                    if (min <= 0.1) {
+                                        flag = false;
+                                        loss += alpha_ - min;
+                                        // loss += val[tmp_j] + alpha_ - val[tmp_k];
+                                        caffe_gpu_sub(inner_num_, bottom_data+tmp_k*inner_num_, bottom_data+tmp_j*inner_num_, diff_diff+i*inner_num_);
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
                 }
+            }
+
+            if (flag && min < alpha_ && tmp_k != -1)
+            {
+                loss += val[tmp_j] + alpha_ - val[tmp_k];
+                caffe_gpu_sub(inner_num_, bottom_data+tmp_k*inner_num_, bottom_data+tmp_j*inner_num_, diff_diff+i*inner_num_);
             }
         }
 
@@ -131,10 +155,10 @@ void TripletLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 
         Dtype scale = Dtype(2.0)*top[0]->cpu_diff()[0];
         caffe_gpu_scale(
-                bottom[0]->count(),    // count
-                scale,                 // scale
-                diff_.gpu_diff(),      // input
-                bottom[0]->mutable_gpu_diff() // output
+            bottom[0]->count(),    // count
+            scale,                 // scale
+            diff_.gpu_diff(),      // input
+            bottom[0]->mutable_gpu_diff() // output
         );
 	/*
 	const Dtype* ptr = bottom[0]->cpu_diff();

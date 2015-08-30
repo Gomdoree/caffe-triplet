@@ -526,7 +526,7 @@ layer {
   bottom: "label"
   top: "loss"
   triplet_loss_param {
-	alpha: 0.00000005
+	alpha: 1.0
   }
 }
 
