@@ -52,9 +52,13 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
     Dtype* device_scalar;
     Dtype* device_tmp;
-    CUDA_CHECK(cudaMalloc((void**)&device_scalar, inner_num_*sizeof(Dtype)));
+    Dtype* middle;
+	Dtype* middle_tmp = new Dtype[inner_num_];
+	CUDA_CHECK(cudaMalloc((void**)&device_scalar, inner_num_*sizeof(Dtype)));
     CUDA_CHECK(cudaMalloc((void**)&device_tmp, batch_size*sizeof(Dtype)));
-    caffe_gpu_set(inner_num_, Dtype(1.0), device_scalar);
+    CUDA_CHECK(cudaMalloc((void**)&middle, inner_num_*sizeof(Dtype)));
+	caffe_gpu_set(inner_num_, Dtype(1.0), device_scalar);
+
     //LOG(INFO) << "mark 2";
     int N = batch_size*inner_num_;
     
@@ -75,10 +79,22 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
         int label = labels[i];
         mat[i] = new Dtype[batch_size];
         if (label < label_separator_) {
-            subAndDot<<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(N, inner_num_,
+            sub_mutable = sub_.mutable_gpu_data();
+			subAndDot<<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(N, inner_num_,
             bottom_data, bottom_data+i*inner_num_, sub_mutable);
-            //LOG(INFO) << "mark 3";
-            caffe_gpu_gemv(CblasNoTrans, inner_num_, batch_size, Dtype(1.0), sub_mutable, device_scalar, Dtype(0.0), device_tmp);
+            /*
+			const Dtype* d = bottom[0]->cpu_data();
+			const Dtype* s = sub_.cpu_data();
+			int p = i*inner_num_;
+			for (int ii = 0; ii < inner_num_; ii++){
+				Dtype t = Dtype(0.0);
+				t = d[ii] - d[p+ii%inner_num_];
+				//CHECK_EQ(s[i], t*t)
+			}
+			LOG(ERROR) << "stop";
+			//LOG(INFO) << "mark 3";
+            */
+			caffe_gpu_gemv(CblasNoTrans, inner_num_, batch_size, Dtype(1.0), sub_mutable, device_scalar, Dtype(0.0), device_tmp);
             /*
             cublasDgemv(handle,
                 batch_size, inner_num_,
@@ -90,55 +106,112 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
             )*/
             //LOG(INFO) << "mark 4";
             cudaMemcpy(mat[i], device_tmp, batch_size*sizeof(Dtype), cudaMemcpyDeviceToHost);
-
-            Dtype* val = mat[i];
+			/*	
+            const Dtype* sub_cpu = sub_.cpu_data();
+	    	for (int ii = 0; ii < batch_size; ii++) {
+				Dtype tmp_sum = Dtype(0.0);
+				int ptr = ii*batch_size;
+				for (int jj = 0; jj < 128; jj++) {
+					tmp_sum += sub_cpu[ptr++];
+				}
+				LOG(INFO) << ii << ": " << tmp_sum << ", " << mat[i][ii];
+				//CHECK_EQ(tmp_sum, mat[i][ii]) << "tmp_sum, mat[i][ii] not equal";
+	    	}
+			*/
+	    	Dtype* val = mat[i];
             bool flag = true;
-            Dtype min = Dtype(100000.0);
+            Dtype margin = Dtype(10000.0);
             int tmp_k = -1;
             int tmp_j = -1;
-            for (int j = 0; j < batch_size && flag; j++){
-                if (j != i && labels[j] == label){ // j is the positive
+            //CHECK_LE(i, 10);
+			for (int j = 0; j < batch_size && flag; j++){    
+				if (j != i && labels[j] == label){ // j is the positive
                     for (int k = 0; k < batch_size; k++){
                         if (labels[k] != label) {
                             if (val[j] >= val[k]) {
                             //if (val[j]+alpha_ >= val[k]) { // k is the negative
                                 loss += val[j] + alpha_ - val[k];
                                 // store half of the gradients
-                                // LOG(INFO) << i << ", " << j << ": " << val[j]  << ", " << k << ": " << val[k];
-                                caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, diff_diff+i*inner_num_);
-                                flag = false;
+                                //LOG(INFO) << i << ", " << j << ":" << val[j]  << ", " << k << ": " << val[k];
+                          
+								caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, middle);
+            					/*
+								cudaMemcpy(middle_tmp, middle, inner_num_*sizeof(Dtype), cudaMemcpyDeviceToHost);
+								for (int ii = 0; ii < inner_num_; ii++){
+									std::cout << middle_tmp[ii] << " ";
+								}
+								std::cout << "\n";
+								*/
+								caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+i*inner_num_);
+								caffe_gpu_sub(inner_num_, bottom_data+j*inner_num_, bottom_data+i*inner_num_, middle);
+            					/*
+								cudaMemcpy(middle_tmp, middle, inner_num_*sizeof(Dtype), cudaMemcpyDeviceToHost);
+								
+								for (int ii = 0; ii < inner_num_; ii++){
+									std::cout << middle_tmp[ii] << " ";
+								}
+								std::cout << "\n";
+								*/
+								caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+j*inner_num_);
+								caffe_gpu_sub(inner_num_, bottom_data+i*inner_num_, bottom_data+k*inner_num_, middle);
+            					/*
+								cudaMemcpy(middle_tmp, middle, inner_num_*sizeof(Dtype), cudaMemcpyDeviceToHost);
+								for (int ii = 0; ii < inner_num_; ii++){
+									std::cout << middle_tmp[ii] << " ";
+								}
+								std::cout << "\n";
+								*/
+								//CHECK_EQ(1, 2);
+								caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+k*inner_num_);
+								flag = false;
                                 break;
                             }
                             else {
-                                if (val[k] - val[j] < min) {
-                                    min = val[k] - val[j];
-                                    tmp_j = j;
-                                    tmp_k = k;
-                                    if (min <= 0.1) {
-                                        flag = false;
-                                        loss += alpha_ - min;
-                                        // loss += val[tmp_j] + alpha_ - val[tmp_k];
-                                        caffe_gpu_sub(inner_num_, bottom_data+tmp_k*inner_num_, bottom_data+tmp_j*inner_num_, diff_diff+i*inner_num_);
-                                        break;
-                                    }
-                                }
+								if (val[k] - val[j] <= 0.2) {	
+                                    flag = false;
+                                    loss += val[j] + alpha_ - val[k];
+                                    // loss += val[tmp_j] + alpha_ - val[tmp_k];
+                                    //caffe_gpu_sub(inner_num_, bottom_data+tmp_k*inner_num_, bottom_data+tmp_j*inner_num_, diff_diff+i*inner_num_);
+                                    
+									caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, middle);
+                                	caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+i*inner_num_);
+									caffe_gpu_sub(inner_num_, bottom_data+j*inner_num_, bottom_data+i*inner_num_, middle);
+									caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+j*inner_num_);
+									caffe_gpu_sub(inner_num_, bottom_data+i*inner_num_, bottom_data+k*inner_num_, middle);
+									caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+k*inner_num_);
+                                	//LOG(INFO) << i << ", " << j << ":" << val[j]  << ", " << k << ": " << val[k];
+                                	break;
+								}
+                                if (val[k] - val[j] < margin) {
+									margin = val[k] - val[j];
+									tmp_j = j;
+									tmp_k = k;
+								}
                             }
                         }
                     }
                 }
             }
 
-            if (flag && min < alpha_ && tmp_k != -1)
+            if (flag && margin < alpha_ && tmp_k != -1)
             {
+
+                //LOG(INFO) << i << ", " << tmp_j << ":" << val[tmp_j]  << ", " << tmp_k << ": " << val[tmp_k];
                 loss += val[tmp_j] + alpha_ - val[tmp_k];
-                caffe_gpu_sub(inner_num_, bottom_data+tmp_k*inner_num_, bottom_data+tmp_j*inner_num_, diff_diff+i*inner_num_);
+                //caffe_gpu_sub(inner_num_, bottom_data+tmp_k*inner_num_, bottom_data+tmp_j*inner_num_, diff_diff+i*inner_num_);
+				caffe_gpu_sub(inner_num_, bottom_data+tmp_k*inner_num_, bottom_data+tmp_j*inner_num_, middle);
+                caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+i*inner_num_);
+				caffe_gpu_sub(inner_num_, bottom_data+tmp_j*inner_num_, bottom_data+i*inner_num_, middle);
+				caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+tmp_j*inner_num_);
+				caffe_gpu_sub(inner_num_, bottom_data+i*inner_num_, bottom_data+tmp_k*inner_num_, middle);
+				caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+tmp_k*inner_num_);
             }
         }
 
     }
 
 
-    top[0]->mutable_cpu_data()[0] = loss;
+    top[0]->mutable_cpu_data()[0] = loss/(Dtype(2)*bottom[0]->num());
     for (int i = 0; i < batch_size; i++) {
         delete[] mat[i];
     }
@@ -153,7 +226,7 @@ void TripletLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
             LOG(INFO) << "Triplet.cu top cpu_diff is not 1.0 is " << top[0]->cpu_diff()[0];
         }
 
-        Dtype scale = Dtype(2.0)*top[0]->cpu_diff()[0];
+        Dtype scale = Dtype(2.0)*top[0]->cpu_diff()[0]/bottom[0]->num();
         caffe_gpu_scale(
             bottom[0]->count(),    // count
             scale,                 // scale
@@ -170,6 +243,9 @@ void TripletLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 	    }
 	    std::cout << "\n";
 	}
+	
+	bottom[0]->gpu_diff();
+	CHECK_EQ(1,2);
 	*/
     }
     else {

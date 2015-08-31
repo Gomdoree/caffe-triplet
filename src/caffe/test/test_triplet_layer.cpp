@@ -21,8 +21,8 @@ class TripletLossLayerTest : public MultiDeviceTest<TypeParam> {
 
  protected:
   TripletLossLayerTest()
-      : blob_bottom_data_(new Blob<Dtype>(100, 10, 1, 1)),
-        blob_bottom_label_(new Blob<Dtype>(100, 1, 1, 1)),
+      : blob_bottom_data_(new Blob<Dtype>(20, 10, 1, 1)),
+        blob_bottom_label_(new Blob<Dtype>(20, 1, 1, 1)),
         blob_top_loss_(new Blob<Dtype>()) {
     // fill the values
     FillerParameter filler_param;
@@ -37,9 +37,9 @@ class TripletLossLayerTest : public MultiDeviceTest<TypeParam> {
     Dtype* label_data = blob_bottom_label_->mutable_cpu_data();
     int half = blob_bottom_label_->count()/2;
     for (int i = 0; i < half; i++) {
-    	label_data[i] = (*my_rng)()%20;
-	std::cout << "label " << i << ": " << label_data[i] << std::endl;
-	label_data[i+half] = label_data[i];
+    	label_data[i] = (*my_rng)()%10;
+	//std::cout << "label " << i << ": " << label_data[i] << std::endl;
+		label_data[i+half] = label_data[i];
     } 
     blob_bottom_vec_.push_back(blob_bottom_label_);
     blob_top_vec_.push_back(blob_top_loss_);
