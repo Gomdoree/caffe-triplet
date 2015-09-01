@@ -69,13 +69,14 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
             // Dtype* val = mat[i];
             // bool flag = true;
             // Dtype margin = Dtype(10000.0);
-            int tmp_k = -1;
-            int tmp_j = -1;
+            // int tmp_k = -1;
+            // int tmp_j = -1;
             for (int j = 0; j < batch_size; j++){    
                 if (j != i && labels[j] == label){ // j is the positive
                     for (int k = 0; k < batch_size; k++){
                         if (labels[k] != label) { // k is the negative
                             if (val[j] + alpha_ >= val[k]) {
+								loss += val[j] + alpha_ - val[k];
                                 caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, middle);
                                 caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+i*inner_num_);
                                 // caffe_gpu_sub(inner_num_, bottom_data+j*inner_num_, bottom_data+i*inner_num_, middle);
