@@ -52,9 +52,9 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
     Dtype* device_scalar;
     Dtype* device_tmp;
-    //Dtype* middle;
+    Dtype* middle;
     //Dtype* middle_tmp = new Dtype[inner_num_];
-    //CUDA_CHECK(cudaMalloc((void**)&middle, inner_num_*sizeof(Dtype)));
+    CUDA_CHECK(cudaMalloc((void**)&middle, inner_num_*sizeof(Dtype)));
     CUDA_CHECK(cudaMalloc((void**)&device_scalar, inner_num_*sizeof(Dtype)));
     CUDA_CHECK(cudaMalloc((void**)&device_tmp, batch_size*sizeof(Dtype)));
 
