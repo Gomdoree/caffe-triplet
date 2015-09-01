@@ -68,14 +68,14 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 
             // Dtype* val = mat[i];
             // bool flag = true;
-            // Dtype margin = Dtype(10000.0);
-            // int tmp_k = -1;
-            // int tmp_j = -1;
+            Dtype margin = Dtype(10000.0);
+            int tmp_k = -1;
+            int tmp_j = -1;
             for (int j = 0; j < batch_size; j++){    
                 if (j != i && labels[j] == label){ // j is the positive
                     for (int k = 0; k < batch_size; k++){
                         if (labels[k] != label) { // k is the negative
-                            if (val[j] + alpha_ >= val[k]) {
+                            if (val[j] >= val[k]) {
 								loss += val[j] + alpha_ - val[k];
                                 caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, middle);
                                 caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+i*inner_num_);
@@ -85,7 +85,36 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
                                 // caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+k*inner_num_);
                                 break;
                             }
+                            else {
+                                if (val[k] - val[j] <= 0.2) {
+                                    loss += val[j] + alpha_ - val[k];
+                                    caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, middle);
+                                    caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+i*inner_num_);
+                                    // caffe_gpu_sub(inner_num_, bottom_data+j*inner_num_, bottom_data+i*inner_num_, middle);
+                                    // caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+j*inner_num_);
+                                    // caffe_gpu_sub(inner_num_, bottom_data+i*inner_num_, bottom_data+k*inner_num_, middle);
+                                    // caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+k*inner_num_);
+                                    break;
+                                }
+
+                                if (val[k] - val[j] < margin) {
+                                    tmp_k = k;
+                                    tmp_j = j;
+                                    margin = val[k] - val[j];
+                                }
+
+                            }
                         }
+                    }
+
+                    if (margin < alpha_ && tmp_k != -1) {
+                        loss += val[tmp_j] + alpha_ - val[tmp_k];
+                        caffe_gpu_sub(inner_num_, bottom_data+tmp_k*inner_num_, bottom_data+tmp_j*inner_num_, middle);
+                        caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+i*inner_num_);
+                        // caffe_gpu_sub(inner_num_, bottom_data+tmp_j*inner_num_, bottom_data+i*inner_num_, middle);
+                        // caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+tmp_j*inner_num_);
+                        // caffe_gpu_sub(inner_num_, bottom_data+i*inner_num_, bottom_data+tmp_k*inner_num_, middle);
+                        // caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+tmp_k*inner_num_);
                     }
                 }
             }
