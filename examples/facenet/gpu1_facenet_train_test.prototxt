@@ -12,7 +12,7 @@ layer {
   }
   data_param {
     source: "/home/xubinbin/caffe/tmp_train_lmdb/"
-    batch_size: 128
+    batch_size: 64
     backend: LMDB
   }
 }
@@ -29,7 +29,7 @@ layer {
   }
   data_param {
     source: "/home/xubinbin/caffe/tmp_test_lmdb/"
-    batch_size: 128
+    batch_size: 64
     backend: LMDB
   }
 }
@@ -542,7 +542,7 @@ layer {
   bottom: "label"
   top: "loss"
   triplet_loss_param {
-	alpha: 1.1
+	alpha: 0.8
   }
 }
 

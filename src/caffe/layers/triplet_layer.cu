@@ -79,7 +79,7 @@ void TripletLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 								loss += val[j] + alpha_ - val[k];
                                 caffe_gpu_sub(inner_num_, bottom_data+k*inner_num_, bottom_data+j*inner_num_, middle);
                                 caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+i*inner_num_);
-                                // caffe_gpu_sub(inner_num_, bottom_data+j*inner_num_, bottom_data+i*inner_num_, middle);
+                                //caffe_gpu_sub(inner_num_, bottom_data+j*inner_num_, bottom_data+i*inner_num_, middle);
                                 // caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+j*inner_num_);
                                 // caffe_gpu_sub(inner_num_, bottom_data+i*inner_num_, bottom_data+k*inner_num_, middle);
                                 // caffe_gpu_axpy(inner_num_, Dtype(1.0), middle, diff_diff+k*inner_num_);
