@@ -354,6 +354,12 @@ message LayerParameter {
   // add triplet loss param
   optional TripletLossParameter triplet_loss_param = 140;
   optional NormalizationParameter normalization_param = 141;
+  optional OffTripletLossParameter off_triplet_loss_param = 142;
+}
+
+// add triplet loss param
+message OffTripletLossParameter {
+    optional float alpha = 1 [default = 1.1]; // to be tuned
 }
 
 // add triplet loss param
