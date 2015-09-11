@@ -5,7 +5,9 @@ What is **FaceNet**?
 
 Link: [CVPR 2015 FaceNet: A Unified Embedding for Face Recognition and Clustering](http://arxiv.org/abs/1503.03832)
 
-It is almost finished, but need further testing and bug fixing!!!
+## Notes:
+thought I implemented both offline and online triplet_loss_layer, but the loss does not decrease when training, If you can point out where is wrong, please let me know.(declanxu@gmail.com)
+THANKS in advance.
 
 ## Updates
 #####15.7.26
