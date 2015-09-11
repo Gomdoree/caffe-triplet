@@ -6,8 +6,9 @@ What is **FaceNet**?
 Link: [CVPR 2015 FaceNet: A Unified Embedding for Face Recognition and Clustering](http://arxiv.org/abs/1503.03832)
 
 ## Notes:
-thought I implemented both offline and online triplet_loss_layer, but the loss does not decrease when training, If you can point out where is wrong, please let me know.(declanxu@gmail.com)
+1. thought I implemented both offline and online triplet_loss_layer, but the loss does not decrease when training, If you can point out where is wrong, please let me know.(declanxu@gmail.com)
 THANKS in advance.
+2. the test codes I wrote in test_triplet_layer.cpp is not correct, so it will not pass when you run "make runtest" in shell, just ignore it. :)
 
 ## Updates
 #####15.7.26
