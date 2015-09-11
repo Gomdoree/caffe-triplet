@@ -541,7 +541,7 @@ layer {
 #  bottom: "fc7128"
   bottom: "label"
   top: "loss"
-  triplet_loss_param {
+  off_triplet_loss_param {
 	alpha: 0.8
   }
 }
